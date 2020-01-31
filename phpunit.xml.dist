@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit
+        bootstrap="./vendor/autoload.php"
+        colors="true"
+        ignoreDeprecatedCodeUnitsFromCodeCoverage="true"
+>
+    <php>
+        <ini name="error_reporting" value="E_ALL"/>
+    </php>
+    <filter>
+        <whitelist processUncoveredFilesFromWhitelist="false">
+            <directory suffix=".php">./src</directory>
+        </whitelist>
+    </filter>
+    <testsuites>
+        <testsuite name="tisie-expect">
+            <directory>./test/src</directory>
+        </testsuite>
+    </testsuites>
+</phpunit>

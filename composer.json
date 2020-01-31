@@ -1,0 +1,38 @@
+{
+  "name": "tisie/expect",
+  "description": "Expectation library to simplify guard clauses.",
+  "license": "MIT",
+  "authors": [{
+    "name": "Mathias Gelhausen",
+    "email": "gelhausen@cross-solution.de"
+  }],
+  "keywords": [
+    "expect", "assertion", "assert", "php"
+  ],
+  "prefer-stable": true,
+  "config": {
+    "optimize-autoloader": false
+  },
+  "require": {
+    "php": ">=7.2"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^8.0",
+    "cross-solution/phpunit-utils": "^2.0",
+    "squizlabs/php_codesniffer": "^3.5",
+    "slevomat/coding-standard": "^5.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "Tisie\\Expect\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Tisie\\ExpectTest\\": "test/src"
+    }
+  },
+  "scripts": {
+    "test": "vendor/bin/phpunit"
+  }
+}

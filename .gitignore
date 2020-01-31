@@ -1,0 +1,8 @@
+# ignore dependencies
+vendor
+
+# ignore test/coverage reports
+test/coverage
+
+# ignore phpunit cache
+.phpunit.result.cache
