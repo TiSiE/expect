@@ -4,21 +4,21 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "5af750bd7fba9d6ed03098dde8ff18b6",
+    "content-hash": "7af459fdb055c2ff3077d211c57456b4",
     "packages": [],
     "packages-dev": [
         {
             "name": "cross-solution/phpunit-utils",
-            "version": "2.0.0",
+            "version": "2.0.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/cross-solution/phpunit-utils.git",
-                "reference": "0eec4a71b48b0b1757636732255c40acd1fedd17"
+                "reference": "c43b2af2b92b456e8cad22a56acb9a26cbbb5ad0"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/cross-solution/phpunit-utils/zipball/0eec4a71b48b0b1757636732255c40acd1fedd17",
-                "reference": "0eec4a71b48b0b1757636732255c40acd1fedd17",
+                "url": "https://api.github.com/repos/cross-solution/phpunit-utils/zipball/c43b2af2b92b456e8cad22a56acb9a26cbbb5ad0",
+                "reference": "c43b2af2b92b456e8cad22a56acb9a26cbbb5ad0",
                 "shasum": ""
             },
             "require": {
@@ -52,7 +52,7 @@
                 "testing",
                 "utilities"
             ],
-            "time": "2019-06-21T12:00:58+00:00"
+            "time": "2020-06-08T18:37:39+00:00"
         },
         {
             "name": "doctrine/instantiator",
