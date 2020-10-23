@@ -130,11 +130,12 @@ abstract class AbstractExpect
     }
 
     /**
-     * Create an instance from an argument.
+     * Create an instance from an variable.
      *
-     * If _$name_ is given, it is prepended with an '$'.
+     * If _$name_ is given, it is prepended with "$".
+     * So "variable" -> "$variable"
      *
-     * If _$name_ is not given, the name of the argument will
+     * If _$name_ is not given, the name of the variable will
      * be parsed from the file this function were called from
      * (but only if an expectation fails).
      *
@@ -143,7 +144,7 @@ abstract class AbstractExpect
      *
      * @return static
      */
-    public static function arg($value, ?string $name = null)
+    public static function var($value, ?string $name = null)
     {
         if ($name === null) {
             $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 1);
@@ -219,10 +220,10 @@ abstract class AbstractExpect
      *
      * Use the factory methods
      * {@link val()} or
-     * {@link arg()}
+     * {@link var()}
      *
      * @param mixed $value
-     * @param string|null $name
+     * @param string|array|null $name
      */
     protected function __construct($value, $name = null)
     {
@@ -295,9 +296,9 @@ abstract class AbstractExpect
                     return $this;
                 }
 
-                public function end(): bool
+                public function end(): AbstractExpect
                 {
-                    return true;
+                    return $this->expect;
                 }
 
                 public function if(string $expectation, ...$args)
