@@ -14,7 +14,6 @@ namespace Tisie\Expect;
 
 use Tisie\Expect\Exception\InvalidArgumentException;
 use Tisie\Expect\Exception\UnexpectedValueException;
-use Tisie\Expect\Expectations\ComparisonTrait;
 
 /**
  * TODO: description
@@ -24,8 +23,6 @@ use Tisie\Expect\Expectations\ComparisonTrait;
  */
 class InternalExpect extends AbstractExpect
 {
-    use ComparisonTrait;
-
     protected static $exceptions = [
         'default' => InvalidArgumentException::class,
         'value' => UnexpectedValueException::class,
@@ -41,5 +38,39 @@ class InternalExpect extends AbstractExpect
             ],
             ...$types
         );
+    }
+
+    public function validOptionKey()
+    {
+        return $this->is('string')->assert(
+            strpos($this->value, '__') !== 0,
+            [
+                'msg' => 'Invalid option key "%s". Keys must not start with "__".',
+                'vars' => [$this->value],
+            ]
+        );
+    }
+
+    public function validOptionKeys()
+    {
+        $this->is('array', 'traversable');
+
+        $validKeys = ['__internal__', '__forward__'];
+
+        $invalidKeys = array_filter(
+            $this->value,
+            fn($x) => !in_array($x, $validKeys) && strpos($x, '__') === 0,
+            ARRAY_FILTER_USE_KEY
+        );
+        //var_dump($this->value, $invalidKeys); exit;
+        return $this->assert(
+            empty($invalidKeys),
+            [$invalidKeys]
+        );
+    }
+
+    protected function validOptionKeysFail($invalidKeys)
+    {
+        return 'Invalid options keys used: ' . join(', ', array_keys($invalidKeys));
     }
 }

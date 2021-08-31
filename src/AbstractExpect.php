@@ -14,13 +14,11 @@ namespace Tisie\Expect;
 
 use InvalidArgumentException;
 use Throwable;
-use Tisie\Expect\Exception\ExpectationExceptionInterface;
 
 use function array_key_exists;
 use function array_map;
 use function array_merge;
 use function array_replace;
-use function array_unshift;
 use function class_exists;
 use function count;
 use function debug_backtrace;
@@ -44,7 +42,6 @@ use function rtrim;
 use function spl_object_id;
 use function str_replace;
 use function strpos;
-use function substr;
 use function trim;
 use function ucfirst;
 use function vsprintf;
@@ -130,12 +127,31 @@ abstract class AbstractExpect
     }
 
     /**
-     * Create an instance from an argument.
+     * Alias for {@link var()}
+     *
+     * This is here for syntactic sugar to differ
+     * semantically between a variable and a function
+     * argument.
+     *
+     * @see var()
+     *
+     * @param mixed $value
+     * @param string|null $name prepended with '$' if not empty
+     *
+     * @return static
+     */
+    public static function arg($value, ?string $name = null)
+    {
+        return static::withResolveName($value, $name);
+    }
+
+    /**
+     * Create an instance from a variable.
      *
      * If _$name_ is given, it is prepended with an '$'.
      *
      * If _$name_ is not given, the name of the argument will
-     * be parsed from the file this function were called from
+     * be parsed from the file this function was called from
      * (but only if an expectation fails).
      *
      * @param mixed $value
@@ -143,11 +159,16 @@ abstract class AbstractExpect
      *
      * @return static
      */
-    public static function arg($value, ?string $name = null)
+    public static function var($value, ?string $name = null)
+    {
+        return static::withResolveName($value, $name);
+    }
+
+    protected static function withResolveName($value, ?string $name = null)
     {
         if ($name === null) {
-            $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 1);
-            $name = [$trace[0]['file'], $trace[0]['line']];
+            $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 2);
+            $name = [$trace[1]['file'], $trace[1]['line']];
         } else {
             $name = "\$$name";
         }
@@ -218,7 +239,8 @@ abstract class AbstractExpect
      * Direct instantiation is not allowed
      *
      * Use the factory methods
-     * {@link val()} or
+     * {@link val()},
+     * {@link var()} or
      * {@link arg()}
      *
      * @param mixed $value
@@ -233,8 +255,11 @@ abstract class AbstractExpect
     public function set($keyOrOptions, $options = null)
     {
         if ($options === null) {
-            $this->options = $keyOrOptions;
+            $options = $this->parseOptions($keyOrOptions);
+            InternalExpect::val($options)->validOptionKeys();
+            $this->options = $options;
         } else {
+            InternalExpect::val($keyOrOptions)->validOptionKey();
             $this->options[$keyOrOptions] = $options;
         }
 
@@ -244,8 +269,11 @@ abstract class AbstractExpect
     public function for(string $expectation, $keyOrOptions, $options = null)
     {
         if ($options === null) {
-            $this->overrides[$expectation] = $keyOrOptions;
+            $options = $this->parseOptions($keyOrOptions);
+            InternalExpect::val($options)->validOptionKeys();
+            $this->overrides[$expectation] = $options;
         } else {
+            InternalExpect::val($keyOrOptions)->validOptionKey();
             $this->overrides[$expectation][$keyOrOptions] = $options;
         }
 
@@ -265,44 +293,6 @@ abstract class AbstractExpect
                 public function end(): bool
                 {
                     return true;
-                }
-            };
-        }
-
-        return $this;
-    }
-
-    public function if(string $expectation, ...$args)
-    {
-        if ($expectation[0] == '@') {
-            array_unshift($args, substr($expectation, 1));
-            $expectation = 'is';
-        }
-
-        try {
-            $this->$expectation(...$args);
-        } catch (ExpectationExceptionInterface $e) {
-            return new class ($this) {
-                private $expect;
-
-                public function __construct(AbstractExpect $expect)
-                {
-                    $this->expect = $expect;
-                }
-
-                public function __call($m, $a)
-                {
-                    return $this;
-                }
-
-                public function end(): bool
-                {
-                    return true;
-                }
-
-                public function if(string $expectation, ...$args)
-                {
-                    return $this->expect->if($expectation, ...$args);
                 }
             };
         }
@@ -354,7 +344,7 @@ abstract class AbstractExpect
                 fgets($fp);
             }
             $lineContent = fgets($fp);
-            preg_match('~::\s*arg\s*\(\s*(\$[a-z0-9_]+)~is', $lineContent, $match);
+            preg_match('~::\s*(?:arg|var)\s*\(\s*(\$[a-z0-9_]+)~is', $lineContent, $match);
             $this->name = $match[1] ?? null;
             fclose($fp);
         }
@@ -445,6 +435,15 @@ abstract class AbstractExpect
         return $this;
     }
 
+    protected function internal(string $expectation, array $options, ...$args): object
+    {
+        $this->options['__internal__'] = $options;
+        $this->$expectation(...$args);
+        unset($this->options['__internal__']);
+
+        return $this;
+    }
+
     protected function assert(bool $condition, $options = null, ?string $failMethod = null)
     {
         return $condition ? $this : $this->fail($options, $failMethod);
@@ -527,11 +526,13 @@ abstract class AbstractExpect
         $globals = $this->options ? $this->parseOptions($this->options, $nested) : [];
         $overrides = isset($this->overrides[$method]) ? $this->parseOptions($this->overrides[$method]) : [];
         $forward = isset($this->options['__forward__']) ? $this->parseOptions($this->options['__forward__']) : [];
+        $internal = isset($this->options['__internal__']) ? $this->parseOptions($this->options['__internal__']) : [];
 
         return array_merge(
             $default,
             $options,
             $forward,
+            $internal,
             $globals,
             $overrides
         );
